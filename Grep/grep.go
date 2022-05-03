@@ -1,11 +1,13 @@
 package main
-import(
-	"fmt"
-	"os"
+
+import (
 	"bufio"
+	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"strings"
+
 	"github.com/fatih/color"
 )
 
@@ -13,28 +15,28 @@ const usage = `
 USAGE: go run grep.go [pattern] [file]
 `
 
-func readFileLinebyLine(filePath string,callback func([]byte))([]string,error){
-	f,err := os.Open(filePath)
+func readFileLinebyLine(filePath string, callback func([]byte)) ([]string, error) {
+	f, err := os.Open(filePath)
 
-	if err!=nil {
+	if err != nil {
 		log.Fatal(err)
-		return nil,err
+		return nil, err
 	}
 
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
 
-	for scanner.Scan(){
+	for scanner.Scan() {
 		callback(scanner.Bytes())
 	}
-	
-	return nil,nil
+
+	return nil, nil
 }
 
-func getIntervals(positions [][]int) []int{
+func getIntervals(positions [][]int) []int {
 	var intervals []int
-	for _,position := range positions{
+	for _, position := range positions {
 		initialInterval := position[0]
 		lastInterval := position[1]
 
@@ -69,15 +71,15 @@ func applyColor(line []byte, intervals []int) string {
 	return strings.Join(stringifiedLine, "")
 }
 
-func main(){
+func main() {
 	args := os.Args[1:]
-	if len(args) < 2{
+	if len(args) < 2 {
 		fmt.Println("Missing args,both pattern string and target file are missing")
 		fmt.Print(usage)
 		os.Exit(0)
 	}
 
-	if len(args) >2 {
+	if len(args) > 2 {
 		fmt.Println("Only two params required")
 		fmt.Print(usage)
 		os.Exit(0)
@@ -86,17 +88,17 @@ func main(){
 	pattern := args[0]
 	filePath := args[1]
 
-	if _,err := os.Stat(filePath); err!=nil {
-		fmt.Printf("%s file does not exist",filePath)
+	if _, err := os.Stat(filePath); err != nil {
+		fmt.Printf("%s file does not exist", filePath)
 		os.Exit(0)
 	}
 
 	re := regexp.MustCompile(pattern)
 
-	_,readLineErr := readFileLinebyLine(filePath,func(line []byte){
-		positions := re.FindAllIndex(line,-1)
+	_, readLineErr := readFileLinebyLine(filePath, func(line []byte) {
+		positions := re.FindAllIndex(line, -1)
 		occurences := len(positions)
-		if occurences>0 {
+		if occurences > 0 {
 			intervals := getIntervals(positions)
 			highlightedLine := applyColor(line, intervals)
 			fmt.Println(highlightedLine)
@@ -104,7 +106,7 @@ func main(){
 		}
 	})
 
-	if readLineErr!=nil {
+	if readLineErr != nil {
 		log.Fatal(readLineErr)
 		fmt.Printf("Error in reading File\n")
 		os.Exit(0)
